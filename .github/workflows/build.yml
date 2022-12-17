@@ -1,0 +1,64 @@
+name: build packages
+on:
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+defaults:
+  run:
+    working-directory: /home/build/openwrt
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform:
+          - images_tag: ramips-mt7621
+            target: mipsel_24kc
+          - images_tag: x86_64
+            target: x86_64
+          - images_tag: aarch64_generic
+            target: aarch64_generic
+        version:
+          - 22.03.2
+    runs-on: ubuntu-latest
+    container:
+      image: docker://openwrtorg/sdk:${{matrix.platform.images_tag}}-${{matrix.version}}
+      env:
+        TZ: Asia/Shanghai
+      options: --user root
+    steps:
+      - name: create bin directory
+        run: |
+          mkdir /__w/mir3g-openwrt/mir3g-openwrt/bin
+          ln -s /__w/mir3g-openwrt/mir3g-openwrt/bin /home/build/openwrt/bin
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
+      - name: create config
+        run: |
+          wget -O .config https://raw.githubusercontent.com/tkit1994/mir3g-openwrt/main/config.default
+          echo 'src-git-full tkit https://github.com/tkit1994/openwrt-packages.git' | tee -a feeds.conf.default
+      - name: update feeds
+        run:  ./scripts/feeds update -a
+      - name: install feed
+        run: ./scripts/feeds install -a -f -p tkit
+      - name: configure
+        run: make defconfig
+      - name: download
+        run: make download -j$(nproc)
+      - name: build
+        run: make -j$(nproc) || make -j1 || make -j1 V=s
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.platform.target}}
+          path: bin/packages/${{matrix.platform.target}}/tkit
