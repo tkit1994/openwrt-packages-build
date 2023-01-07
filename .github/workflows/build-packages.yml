@@ -21,7 +21,8 @@ jobs:
           - images_tag: aarch64_generic
             target: aarch64_generic
         version:
-          - 22.03
+          - 22.03.2
+          - snapshot
       fail-fast: false
     runs-on: ubuntu-latest
     container:
