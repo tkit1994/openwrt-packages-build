@@ -33,8 +33,8 @@ jobs:
     steps:
       - name: create bin directory
         run: |
-          mkdir /__w/mir3g-openwrt/mir3g-openwrt/bin
-          ln -s /__w/mir3g-openwrt/mir3g-openwrt/bin /home/build/openwrt/bin
+          mkdir ${GITHUB_WORKSPACE}/bin
+          ln -s ${GITHUB_WORKSPACE}/bin /home/build/openwrt/bin
       - name: create config
         run: |
           wget -O .config https://raw.githubusercontent.com/tkit1994/mir3g-openwrt/main/config.default
