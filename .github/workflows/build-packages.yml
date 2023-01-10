@@ -21,7 +21,7 @@ jobs:
           - images_tag: aarch64_generic
             target: aarch64_generic
         version:
-          - 22.03.2
+          - openwrt-22.03
           - snapshot
       fail-fast: false
     runs-on: ubuntu-latest
