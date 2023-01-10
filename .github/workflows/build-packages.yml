@@ -14,19 +14,16 @@ jobs:
     strategy:
       matrix:
         platform:
-          - images_tag: ramips-mt7621
-            target: mipsel_24kc
-          - images_tag: x86_64
-            target: x86_64
-          - images_tag: aarch64_generic
-            target: aarch64_generic
+          - target: mipsel_24kc
+          - target: x86_64
+          - target: aarch64_generic
         version:
           - openwrt-22.03
-          - snapshot
-      fail-fast: false
+      fail-fast: true
+
     runs-on: ubuntu-latest
     container:
-      image: docker://openwrtorg/sdk:${{matrix.platform.images_tag}}-${{matrix.version}}
+      image: docker://openwrtorg/sdk:${{matrix.platform.target}}-${{matrix.version}}
       env:
         TZ: Asia/Shanghai
       options: --user root
@@ -40,7 +37,7 @@ jobs:
           wget -O .config https://raw.githubusercontent.com/tkit1994/mir3g-openwrt/main/config.default
           echo 'src-git-full tkit https://github.com/tkit1994/openwrt-packages.git' | tee -a feeds.conf.default
       - name: update feeds
-        run:  ./scripts/feeds update -a
+        run: ./scripts/feeds update -a
       - name: install feed
         run: ./scripts/feeds install -a -f -p tkit
       - name: configure
