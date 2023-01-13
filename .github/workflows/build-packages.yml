@@ -14,16 +14,44 @@ jobs:
     strategy:
       matrix:
         platform:
-          - target: mipsel_24kc
-          - target: x86_64
-          - target: aarch64_generic
+          - aarch64_cortex-a53
+          - aarch64_cortex-a72
+          - aarch64_generic
+          - arc_archs
+          - arm_arm1176jzf-s_vfp
+          - arm_arm926ej-s
+          - arm_cortex-a15_neon-vfpv4
+          - arm_cortex-a5_vfpv4
+          - arm_cortex-a7
+          - arm_cortex-a7_neon-vfpv4
+          - arm_cortex-a7_vfpv4
+          - arm_cortex-a8_vfpv3
+          - arm_cortex-a9
+          - arm_cortex-a9_neon
+          - arm_cortex-a9_vfpv3-d16
+          - arm_fa526
+          - arm_mpcore
+          - arm_xscale
+          - i386_pentium4
+          - i386_pentium-mmx
+          - mips_24kc
+          - mips_4kec
+          - mips64_octeonplus
+          - mipsel_24kc
+          - mipsel_24kc_24kf
+          - mipsel_74kc
+          - mipsel_mips32
+          - mips_mips32
+          - powerpc_464fp
+          - powerpc_8540
+          - x86_64
         version:
-          - openwrt-22.03
-      fail-fast: true
+          - 22.03.3
+      fail-fast: false
 
     runs-on: ubuntu-latest
     container:
-      image: docker://openwrtorg/sdk:${{matrix.platform.target}}-${{matrix.version}}
+      image: docker://openwrtorg/sdk:${{matrix.platform}}-${{matrix.version}}
       env:
         TZ: Asia/Shanghai
       options: --user root
@@ -34,11 +62,13 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/bin /home/build/openwrt/bin
       - name: create config
         run: |
+          sed -i "s/git.openwrt.org\/feed/github.com\/openwrt/g" feeds.conf.default
+          sed -i "s/git.openwrt.org\/project/github.com\/openwrt/g" feeds.conf.default
           wget -O .config https://raw.githubusercontent.com/tkit1994/mir3g-openwrt/main/config.default
           echo 'src-git-full tkit https://github.com/tkit1994/openwrt-packages.git' | tee -a feeds.conf.default
       - name: update feeds
         run: ./scripts/feeds update -a
-      - name: install feed
+      - name: install feeds
         run: ./scripts/feeds install -a -f -p tkit
       - name: configure
         run: make defconfig
@@ -48,5 +78,5 @@ jobs:
         run: make -j$(nproc) || make -j1 V=s
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{matrix.version}}-${{matrix.platform.target}}
-          path: bin/packages/${{matrix.platform.target}}/tkit
+          name: ${{matrix.version}}-${{matrix.platform}}
+          path: bin/packages/${{matrix.platform}}/tkit
