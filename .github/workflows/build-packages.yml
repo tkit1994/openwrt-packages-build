@@ -8,7 +8,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: /home/build/openwrt
+    working-directory: /builder
 jobs:
   build:
     strategy:
@@ -46,12 +46,12 @@ jobs:
           - powerpc_8540
           - x86_64
         version:
-          - 22.03.3
+          - 22.03.5
       fail-fast: false
 
     runs-on: ubuntu-latest
     container:
-      image: docker://openwrtorg/sdk:${{matrix.platform}}-${{matrix.version}}
+      image: docker://openwrt/sdk:${{matrix.platform}}-${{matrix.version}}
       env:
         TZ: Asia/Shanghai
       options: --user root
@@ -59,7 +59,7 @@ jobs:
       - name: create bin directory
         run: |
           mkdir ${GITHUB_WORKSPACE}/bin
-          ln -s ${GITHUB_WORKSPACE}/bin /home/build/openwrt/bin
+          ln -s ${GITHUB_WORKSPACE}/bin /builder/bin
       - name: create config
         run: |
           sed -i "s/git.openwrt.org\/feed/github.com\/openwrt/g" feeds.conf.default
